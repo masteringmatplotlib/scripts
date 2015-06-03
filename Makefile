@@ -1,35 +1,55 @@
-VENV=.venv
-PYTHON=$(shell which python3.4)
+ROOT_DIR = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+BUNDLE_NAME = code-bundle
+BUNDLE_DIR = $(shell dirname $(ROOT_DIR))/$(BUNDLE_NAME)
+BUNDLE_ZIP = $(BUNDLE_DIR).zip
+CHAPTERS = 01-preview 02-architecture 03-apis 04-interaction 05-high-level 06-custom-and-config 07-cloud-deploy 08-big-data 09-clustering
+REPO_BASE = git@github.com:masteringmatplotlib
 
-virtual-env:
-	$(PYTHON) -m venv $(VENV)
+# git clone git@github.com:masteringmatplotlib/preview.git 01-preview
+# git submodule init && git submodule update
 
-pygraphviz:
-	@git clone https://github.com/pygraphviz/pygraphviz
-	@. $(VENV)/bin/activate && \
-	cd pygraphviz && \
-	git checkout 6c0876c9bb158452f1193d562531d258e9193f2e && \
-	git apply ../patches/graphviz-includes.diff && \
-	python setup.py install
-	@rm -rf pygraphviz
+$(BUNDLE_DIR):
+	@echo
+	@echo "Creating $(BUNDLE_DIR) ..."
+	@mkdir $(BUNDLE_DIR)
+	@make download-code
+	@make strip-git
 
+$(BUNDLE_ZIP):
+	@echo
+	@echo "Creating $(BUNDLE_ZIP) ..."
+	@zip -r $(BUNDLE_DIR) $(BUNDLE_DIR)
 
-deps: pygraphviz
-	. $(VENV)/bin/activate && \
-	pip3.4 install -r requirements.txt
+bundle: $(BUNDLE_DIR) $(BUNDLE_ZIP)
+	@echo
+	@echo "Your code bundle is available here:"
+	@echo "  $(BUNDLE_ZIP)"
 
-setup: virtual-env deps
+download-code:
+	@echo
+	@echo "Downloading code ..."
+	@for CHAP in $(CHAPTERS); \
+	do \
+	REPO=`echo $$CHAP|cut -c 4-`; \
+	git clone $(REPO_BASE)/$${REPO}.git $(BUNDLE_DIR)/$$CHAP; \
+	cd $(BUNDLE_DIR)/$$CHAP && \
+	git submodule init && git submodule update; \
+	done
 
-run:
-	. $(VENV)/bin/activate && \
-	ipython notebook notebooks/mmpl-preview.ipynb
+strip-git:
+	@echo
+	@echo "Removing git files ..."
+	@rm -rf $(BUNDLE_DIR)/*/.git*
+	@rm -rf $(BUNDLE_DIR)/*/include/.git
 
-clean:
-	rm -rf $(VENV)
+bundle-clean:
+	@echo
+	@echo "Removing $(BUNDLE_DIR) ..."
+	@rm -rf $(BUNDLE_DIR)
 
-# Use the following make target like so:
-#
-#   $ SCRIPT=./my-script.py LAYOUT=twopi MODE=simple make modgraph
-modgraph:
-	python third-party/modgraph.py $(SCRIPT) $(LAYOUT) $(MODE) && \
-	open modgraph.png
+bundle-zip-clean:
+	@echo
+	@echo "Removing $(BUNDLE_ZIP) ..."
+	@rm -f $(BUNDLE_ZIP)
+
+clean-all: bundle-clean bundle-zip-clean
