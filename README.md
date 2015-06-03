@@ -5,6 +5,6 @@ managing the "Mastering matplotlib" codebase.
 
 ## Targets
 
-* ``make bundle`` - Create a Packt code bundle (zip file) for all the chapters
+* ``make bundle`` - Create a Packt code bundle (zip, gzip, & bzip2 files) for all the chapters
 * ``make clean-all`` - Remove bundle directories and zip file
 
