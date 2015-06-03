@@ -26,7 +26,7 @@ $(BUNDLE_ZIP):
 	@make bzip2
 
 zip:
-	@cd $(BUNDLE_PARENT) && zip -r $(BUNDLE_NAME) $(BUNDLE_DIR)
+	@cd $(BUNDLE_PARENT) && zip -r $(BUNDLE_DIR) $(BUNDLE_NAME)
 
 gzip:
 	@cd $(BUNDLE_PARENT) && \
